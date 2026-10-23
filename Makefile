@@ -22,7 +22,7 @@ obj/%.o: src/%.c definitions.h $(HEAD)
 	@printf '\033[1;34mCC   %s\033[0m\n' "$<"
 	@$(CC) -c $< -o $@ $(CFLAGS)
 
-obj/main.o: main.c definitions.h $(HEAD)
+obj/main.o: main.c definitions.h params.h $(HEAD)
 	@mkdir -p obj
 	@printf '\033[1;34mCC   %s\033[0m\n' "$<"
 	@$(CC) -c $< -o $@ $(CFLAGS)

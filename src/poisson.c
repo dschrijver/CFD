@@ -30,9 +30,12 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
     double residual_initial;
     MPI_Allreduce(&residual_initial_local, &residual_initial, 1, MPI_DOUBLE, MPI_SUM, params->comm_cart);
 
+    if (params->process_rank == 0)
+        printf("Initial residual: %.3e\n", residual_initial);
+
     *iters = 0;
     double residual_previous = residual_initial;
-    while (*iters < 100)
+    while (*iters < 1000)
     {
         communicate_scalar(p, params);
 
@@ -89,5 +92,7 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
 
             p[idx0] = r[idx0] + beta*p[idx0];
         }
+
+        residual_previous = *residual;
     }
 }
