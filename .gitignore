@@ -1,0 +1,5 @@
+.vscode/
+*.h5
+cfd
+obj/
+hdf5/
