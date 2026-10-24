@@ -4,6 +4,9 @@ from natsort import natsorted
 import matplotlib.pyplot as plt
 import numpy as np
 
+def analytical(x, freq):
+    return (np.sin(freq*2*np.pi*x/LX) * np.sin(freq*2*np.pi*y/LY) * np.sin(freq*2*np.pi*z/LZ)) / ((freq*2*np.pi/LX)**2 + (freq*2*np.pi/LY)**2 + (freq*2*np.pi/LZ)**2)
+
 data_directory = __file__.rsplit("/", 2)[0] + "/"
 
 data_path = Path(data_directory)
@@ -17,8 +20,8 @@ with h5py.File(data_files[0], "r") as data_file:
 
 h = 0.01
 
-j = NY//4
-k = NZ//4
+j = NY//2
+k = NZ//2
 
 data = data[:,j,k]
 
@@ -29,8 +32,11 @@ LX = NX * h
 LY = NY * h
 LZ = NZ * h
 
-data_analytical = - (np.sin(2*np.pi*x/LX) * np.sin(2*np.pi*y/LY) * np.sin(2*np.pi*z/LZ)) / ((2*np.pi/LX)**2 + (2*np.pi/LY)**2 + (2*np.pi/LZ)**2)
+data_analytical = -analytical(x, 1) - 0.5*analytical(x, 10) - 0.1*analytical(x, 20)
 
 plt.plot(x, data)
 plt.plot(x, data_analytical, ls="--")
-plt.show()
+plt.xlabel("$x$")
+plt.ylabel("pressure")
+plt.suptitle("$y = %.3f, z = %.3f$"%(y, z))
+plt.savefig("validation.pdf")

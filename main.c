@@ -11,6 +11,7 @@
 #include "include/output.h"
 #include "include/communicate.h"
 #include "include/poisson.h"
+#include "definitions.h"
 
 int main(int argc, char **argv)
 {
@@ -41,16 +42,7 @@ int main(int argc, char **argv)
 
     UNPACK_GRID
 
-    // FOR_DOMAIN
-    // {
-    //     const double x = PHYS(i);
-    //     const double y = PHYS(j);
-    //     const double z = PHYS(k);
-    //     rhs[IDX(i, j, k)] = sin(10.0 * 2.0 * PI * x / LX) * sin(2.0 * PI * y / LY) * sin(2.0 * PI * z / LZ)
-    //                 + 0.5 * sin(10.0 * 2.0 * PI * x / LX) * sin(10.0 * 2.0 * PI * y / LY) * sin(10.0 * 2.0 * PI * z / LZ)
-    //                 + 0.1 * sin(20.0 * 2.0 * PI * x / LX) * sin(20.0 * 2.0 * PI * y / LY) * sin(20.0 * 2.0 * PI * z / LZ);
-    // }
-
+#ifdef INI_RHS_NOISE
     double avg_local = 0.0;
     FOR_DOMAIN
     {
@@ -64,6 +56,17 @@ int main(int argc, char **argv)
     {
         rhs[IDX(i, j, k)] -= avg;
     }
+#else
+    FOR_DOMAIN
+    {
+        const double x = PHYS(i);
+        const double y = PHYS(j);
+        const double z = PHYS(k);
+        rhs[IDX(i, j, k)] = sin(2.0 * PI * x / LX) * sin(2.0 * PI * y / LY) * sin(2.0 * PI * z / LZ)
+                    + 0.5 * sin(10.0 * 2.0 * PI * x / LX) * sin(10.0 * 2.0 * PI * y / LY) * sin(10.0 * 2.0 * PI * z / LZ)
+                    + 0.1 * sin(20.0 * 2.0 * PI * x / LX) * sin(20.0 * 2.0 * PI * y / LY) * sin(20.0 * 2.0 * PI * z / LZ);
+    }
+#endif
 
     output_scalar(rhs, "rhs", params);
 
