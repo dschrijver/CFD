@@ -12,6 +12,7 @@
 #include "include/communicate.h"
 #include "include/poisson.h"
 #include "definitions.h"
+#include "include/bc.h"
 
 int main(int argc, char **argv)
 {
@@ -56,6 +57,26 @@ int main(int argc, char **argv)
     {
         rhs[IDX(i, j, k)] -= avg;
     }
+#elif defined(INI_RHS_COSINE)
+    FOR_DOMAIN
+    {
+        const double x = PHYS(i);
+        const double y = PHYS(j);
+        const double z = PHYS(k);
+        rhs[IDX(i, j, k)] = cos(PI * x / LX) * cos(PI * y / LY) * cos(PI * z / LZ)
+                    + 0.5 * cos(19 * PI * x / LX) * cos(19 * PI * y / LY) * cos(19 * PI * z / LZ)
+                    + 0.1 * cos(39.0 * PI * x / LX) * cos(39.0 * PI * y / LY) * cos(39.0 * PI * z / LZ);
+    }
+#elif defined(INI_RHS_ODDSINE)
+    FOR_DOMAIN
+    {
+        const double x = PHYS(i);
+        const double y = PHYS(j);
+        const double z = PHYS(k);
+        rhs[IDX(i, j, k)] = sin(PI * x / LX) * sin(PI * y / LY) * sin(PI * z / LZ)
+                    + 0.5 * sin(19 * PI * x / LX) * sin(19 * PI * y / LY) * sin(19 * PI * z / LZ)
+                    + 0.1 * sin(39.0 * PI * x / LX) * sin(39.0 * PI * y / LY) * sin(39.0 * PI * z / LZ);
+    }
 #else
     FOR_DOMAIN
     {
@@ -76,6 +97,7 @@ int main(int argc, char **argv)
         pressure[IDX(i, j, k)] = 0.0;
     }
     communicate_scalar(pressure, params);
+    pressure_bc(pressure, params);
 
     double residual;
     int iters;

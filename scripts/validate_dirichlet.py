@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def analytical(x, freq):
-    return (np.sin(freq*2*np.pi*x/LX) * np.sin(freq*2*np.pi*y/LY) * np.sin(freq*2*np.pi*z/LZ)) / ((freq*2*np.pi/LX)**2 + (freq*2*np.pi/LY)**2 + (freq*2*np.pi/LZ)**2)
+    return (np.sin(freq*np.pi*x/LX) * np.sin(freq*np.pi*y/LY) * np.sin(freq*np.pi*z/LZ)) / ((freq*np.pi/LX)**2 + (freq*np.pi/LY)**2 + (freq*np.pi/LZ)**2)
 
 data_directory = __file__.rsplit("/", 2)[0] + "/"
 
@@ -20,8 +20,8 @@ with h5py.File(data_files[0], "r") as data_file:
 
 h = 0.01
 
-j = NY//2
-k = NZ//2
+j = 0
+k = 0
 
 data = data[:,j,k]
 
@@ -32,11 +32,11 @@ LX = NX * h
 LY = NY * h
 LZ = NZ * h
 
-data_analytical = -analytical(x, 1) - 0.5*analytical(x, 10) - 0.1*analytical(x, 20)
+data_analytical = -analytical(x, 1) - 0.5*analytical(x, 19) - 0.1*analytical(x, 39)
 
 plt.plot(x, data)
 plt.plot(x, data_analytical, ls="--")
 plt.xlabel("$x$")
 plt.ylabel("pressure")
 plt.suptitle("$y = %.3f, z = %.3f$"%(y, z))
-plt.savefig("validation.pdf")
+plt.savefig("validation_dirichlet.pdf")

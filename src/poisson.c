@@ -1,6 +1,7 @@
 #include "../include/datatypes.h"
 #include "../include/utils.h"
 #include "../include/communicate.h"
+#include "../include/bc.h"
 
 // Solves nabla^2 scalar = rhs with conjugate gradient method. 
 void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q, double *residual, int *iters, ParamBag *params)
@@ -14,7 +15,6 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
     {
         const int idx0 = IDX(i, j, k);
 
-        // Periodic boundary conditions assumed. 
         // At no-slip boundary conditions, zero normal gradients. 
         // At dirichlet boundary, set to specific value.
         const double d2dx2 = (scalar[IDX(i-1,j,k)] - 2.0*scalar[idx0] + scalar[IDX(i+1,j,k)]) / (h*h);
@@ -38,13 +38,13 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
     while (*iters < 1000)
     {
         communicate_scalar(p, params);
+        pressure_poisson_bc(p, params);
 
         double alpha_denom_local = 0.0;
         FOR_DOMAIN
         {
             const int idx0 = IDX(i, j, k);
 
-            // Periodic boundary conditions assumed.
             // At no-slip boundary conditions, zero normal gradients. 
             // At dirichlet boundary, set to zero.
             // These two rules are defined by scalar_new = scalar_old + alpha p. 
