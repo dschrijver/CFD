@@ -104,6 +104,11 @@ int main(int argc, char **argv)
         params->time += params->dt;
     }
 
+    output(u, "u", params);
+    output(v, "v", params);
+    output(w, "w", params);
+    output(pressure, "pressure", params);
+
     free(r_poisson);
     free(p_poisson);
     free(q_poisson);

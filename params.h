@@ -10,11 +10,11 @@ static inline void set_params(ParamBag *params)
     params->NZ = 1;
     params->dx = 0.01;
 
-    params->t_final = 1.0;
-    params->dt = 1e-4;
+    params->t_final = 100.0;
+    params->dt = 1e-3;
 
-    params->dt_output = 1e-2;
-    params->dt_log = 1e-3;
+    params->dt_output = 1.0;
+    params->dt_log = 0.1;
 
     params->Re = 100.0;
     params->Fx = 1.0;
