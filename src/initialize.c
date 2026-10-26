@@ -162,8 +162,8 @@ void initialize_fields(double *u, double *v, double *w, double *pressure, ParamB
 #endif
 
 #ifdef INI_TAYLORGREEN
-        u[idx0] = sin(x_face)*cos(y_center);
-        v[idx0] = -cos(x_center)*sin(y_face);
+        u[idx0] = sin(2.0 * PI * x_face / LX)*cos(2.0 * PI * y_center / LY);
+        v[idx0] = -cos(2.0 * PI * x_center / LX)*sin(2.0 * PI * y_face / LY);
         w[idx0] = 0.0;
 #endif
 

@@ -77,7 +77,9 @@ int main(int argc, char **argv)
         communicate(v, buffers, params);
         communicate(w, buffers, params);
         velocity_bc(u, v, w, params);
-        predict_velocities(u, v, w, u_predict, v_predict, w_predict, params);
+        predict_velocity_u(u, v, w, u_predict, params);
+        predict_velocity_v(u, v, w, v_predict, params);
+        predict_velocity_w(u, v, w, w_predict, params);
 
         communicate(u_predict, buffers, params);
         communicate(v_predict, buffers, params);

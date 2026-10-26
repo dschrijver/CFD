@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "../include/datatypes.h"
 #include "../include/utils.h"
 #include "../include/communicate.h"
@@ -10,7 +12,7 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
 
     const double epsilon = params->poisson_epsilon;
     
-    double residual_initial_local = 0.0;
+    double r2_initial_local = 0.0;
     FOR_DOMAIN
     {
         const int idx0 = IDX(i, j, k);
@@ -24,13 +26,15 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
         const double lhs = d2dx2 + d2dy2 + d2dz2;
 
         r[idx0] = rhs[idx0] - lhs;
-        residual_initial_local += r[idx0]*r[idx0];
+        r2_initial_local += r[idx0]*r[idx0];
         p[idx0] = r[idx0];
     }
-    double residual_initial;
-    MPI_Allreduce(&residual_initial_local, &residual_initial, 1, MPI_DOUBLE, MPI_SUM, params->comm_cart);
+    double r2_initial;
+    MPI_Allreduce(&r2_initial_local, &r2_initial, 1, MPI_DOUBLE, MPI_SUM, params->comm_cart);
 
-    if (residual_initial < 1e-12)
+    double residual_initial = params->dt * sqrt(1.0/((double)NX*NY*NZ) * r2_initial);
+
+    if (residual_initial < epsilon)
     {
         *residual = residual_initial;
         *iters = 0;
@@ -38,7 +42,7 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
     }
 
     *iters = 0;
-    double residual_previous = residual_initial;
+    double r2_previous = r2_initial;
     while (*iters < 1000)
     {
         communicate(p, buffers, params);
@@ -62,7 +66,7 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
         }
         double alpha_denom;
         MPI_Allreduce(&alpha_denom_local, &alpha_denom, 1, MPI_DOUBLE, MPI_SUM, params->comm_cart);
-        const double alpha = residual_previous / alpha_denom;
+        const double alpha = r2_previous / alpha_denom;
 
         FOR_DOMAIN
         {
@@ -72,23 +76,24 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
             r[idx0] -= alpha*q[idx0];
         }
 
-        double residual_local = 0.0;
+        double r2_local = 0.0;
         FOR_DOMAIN
         {
             const int idx0 = IDX(i, j, k);
 
-            residual_local += r[idx0]*r[idx0];
+            r2_local += r[idx0]*r[idx0];
         }
-        MPI_Allreduce(&residual_local, residual, 1, MPI_DOUBLE, MPI_SUM, params->comm_cart);
+        double r2;
+        MPI_Allreduce(&r2_local, &r2, 1, MPI_DOUBLE, MPI_SUM, params->comm_cart);
 
         *iters += 1;
 
-        if (*residual / residual_initial < epsilon)
-        {
-            break;
-        }
+        *residual = params->dt * sqrt(1.0/((double)NX*NY*NZ) * r2);
 
-        const double beta = *residual / residual_previous;
+        if (*residual < epsilon)
+            break;
+
+        const double beta = r2 / r2_previous;
 
         FOR_DOMAIN
         {
@@ -97,6 +102,6 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
             p[idx0] = r[idx0] + beta*p[idx0];
         }
 
-        residual_previous = *residual;
+        r2_previous = r2;
     }
 }

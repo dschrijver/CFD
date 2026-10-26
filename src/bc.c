@@ -61,35 +61,6 @@ void velocity_bc(double *u, double *v, double *w, ParamBag *params)
 #endif
 }
 
-void velocity_bc_after(double *u, double *v, double *w, ParamBag *params)
-{
-    UNPACK_GRID
-
-    (void)u; (void)v; (void)w;
-
-    // -----------------------------------------------------------------------------
-    // NO-SLIP WALLS
-    // -----------------------------------------------------------------------------
-#ifdef LEFT_NOSLIP
-    if (i_start == 0) for (int j = j_start; j < j_end; j++) for (int k = k_start; k < k_end; k++)
-    {
-        u[IDX(i_start, j, k)] = 0.0;
-    }
-#endif
-#ifdef BOTTOM_NOSLIP
-    if (j_start == 0) for (int i = i_start; i < i_end; i++) for (int k = k_start; k < k_end; k++)
-    {
-        v[IDX(i, j_start, k)] = 0.0;
-    }
-#endif
-#ifdef BACK_NOSLIP
-    if (k_start == 0) for (int i = i_start; i < i_end; i++) for (int j = j_start; j < j_end; j++)
-    {
-        w[IDX(i, j, k_start)] = 0.0;
-    }
-#endif
-}
-
 void pressure_bc(double *pressure, ParamBag *params)
 {
     UNPACK_GRID
