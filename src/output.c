@@ -1,7 +1,7 @@
 #include "../include/datatypes.h"
 #include "../include/utils.h"
 
-void output_scalar(double *scalar, char *name, ParamBag *params)
+void output(double *field, char *name, ParamBag *params)
 {
     UNPACK_GRID
 
@@ -50,7 +50,7 @@ void output_scalar(double *scalar, char *name, ParamBag *params)
     // Write data
     hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-    H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, filespace, dxpl_id, scalar);
+    H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, filespace, dxpl_id, field);
 
     H5Dclose(dset_id);
     H5Sclose(memspace);

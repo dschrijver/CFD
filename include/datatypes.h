@@ -8,14 +8,23 @@ typedef struct ParamBag
 {
     // Simulation variables
     double time;
-
+    double time_output;
+    double time_log;
     int n_output;
 
     // Parameters
     int NX;   
     int NY;   
     int NZ;
-    double h;
+    double dx;
+    double t_final;
+    double dt;
+    double dt_output;
+    double dt_log;
+    double Re;
+    double Fx;
+    double Fy;
+    double Fz;
     double poisson_epsilon;
 
     // MPI

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-#include <time.h>
 
 #include "params.h"
 #include "include/initialize.h"
@@ -13,6 +12,7 @@
 #include "include/poisson.h"
 #include "definitions.h"
 #include "include/bc.h"
+#include "include/velocity.h"
 
 int main(int argc, char **argv)
 {
@@ -24,91 +24,102 @@ int main(int argc, char **argv)
     initialize_MPI(params);
     initialize_HDF5(params);
 
-    srand(time(NULL) + params->process_rank);
+    double *u, *v, *w;
+    allocate(&u, params);
+    allocate(&v, params);
+    allocate(&w, params);
+
+    double *u_predict, *v_predict, *w_predict;
+    allocate(&u_predict, params);
+    allocate(&v_predict, params);
+    allocate(&w_predict, params);
 
     double *pressure;
-    allocate_scalar(&pressure, params);
+    allocate(&pressure, params);
 
-    double *rhs;
-    allocate_scalar(&rhs, params);
+    double *divergence;
+    allocate(&divergence, params);
 
     // Used for Poisson solver
-    double *r, *p, *q;
-    allocate_scalar(&r, params);
-    allocate_scalar(&p, params);
-    allocate_scalar(&q, params);
+    double *r_poisson, *p_poisson, *q_poisson;
+    allocate(&r_poisson, params);
+    allocate(&p_poisson, params);
+    allocate(&q_poisson, params);
+
+    initialize_fields(u, v, w, pressure, params);
 
     params->time = 0.0;
+    params->time_output = 0.0;
+    params->time_log = 0.0;
     params->n_output = 0;
 
-    UNPACK_GRID
-
-#ifdef INI_RHS_NOISE
-    double avg_local = 0.0;
-    FOR_DOMAIN
+    double residual_poisson = 0.0;
+    int iters_poisson = 0;
+    while (params->time < params->t_final)
     {
-        rhs[IDX(i, j, k)] = (double)rand() / (((double)RAND_MAX) + 1.0);
-        avg_local += rhs[IDX(i, j, k)];
-    }
-    double avg;
-    MPI_Allreduce(&avg_local, &avg, 1, MPI_DOUBLE, MPI_SUM, params->comm_cart);
-    avg /= NX*NY*NZ;
-    FOR_DOMAIN
-    {
-        rhs[IDX(i, j, k)] -= avg;
-    }
-#elif defined(INI_RHS_COSINE)
-    FOR_DOMAIN
-    {
-        const double x = PHYS(i);
-        const double y = PHYS(j);
-        const double z = PHYS(k);
-        rhs[IDX(i, j, k)] = cos(PI * x / LX) * cos(PI * y / LY) * cos(PI * z / LZ)
-                    + 0.5 * cos(19 * PI * x / LX) * cos(19 * PI * y / LY) * cos(19 * PI * z / LZ)
-                    + 0.1 * cos(39.0 * PI * x / LX) * cos(39.0 * PI * y / LY) * cos(39.0 * PI * z / LZ);
-    }
-#elif defined(INI_RHS_ODDSINE)
-    FOR_DOMAIN
-    {
-        const double x = PHYS(i);
-        const double y = PHYS(j);
-        const double z = PHYS(k);
-        rhs[IDX(i, j, k)] = sin(PI * x / LX) * sin(PI * y / LY) * sin(PI * z / LZ)
-                    + 0.5 * sin(19 * PI * x / LX) * sin(19 * PI * y / LY) * sin(19 * PI * z / LZ)
-                    + 0.1 * sin(39.0 * PI * x / LX) * sin(39.0 * PI * y / LY) * sin(39.0 * PI * z / LZ);
-    }
-#else
-    FOR_DOMAIN
-    {
-        const double x = PHYS(i);
-        const double y = PHYS(j);
-        const double z = PHYS(k);
-        rhs[IDX(i, j, k)] = sin(2.0 * PI * x / LX) * sin(2.0 * PI * y / LY) * sin(2.0 * PI * z / LZ)
-                    + 0.5 * sin(10.0 * 2.0 * PI * x / LX) * sin(10.0 * 2.0 * PI * y / LY) * sin(10.0 * 2.0 * PI * z / LZ)
-                    + 0.1 * sin(20.0 * 2.0 * PI * x / LX) * sin(20.0 * 2.0 * PI * y / LY) * sin(20.0 * 2.0 * PI * z / LZ);
-    }
-#endif
+        if (params->time > params->time_output - 0.5*params->dt)
+        {
+            output(u, "u", params);
+            output(v, "v", params);
+            output(w, "w", params);
+            output(pressure, "pressure", params);
 
-    output_scalar(rhs, "rhs", params);
+            params->n_output += 1;
 
-    // Initial guess
-    FOR_DOMAIN
-    {
-        pressure[IDX(i, j, k)] = 0.0;
+            params->time_output += params->dt_output;
+        }
+
+        communicate(u, params);
+        communicate(v, params);
+        communicate(w, params);
+        velocity_bc(u, v, w, params);
+        predict_velocities(u, v, w, u_predict, v_predict, w_predict, params);
+
+        communicate(u_predict, params);
+        communicate(v_predict, params);
+        communicate(w_predict, params);
+        velocity_bc(u_predict, v_predict, w_predict, params);
+        compute_divergence(u_predict, v_predict, w_predict, divergence, params);
+
+        communicate(pressure, params);
+        pressure_bc(pressure, params);
+        poisson_solve(pressure, divergence, r_poisson, p_poisson, q_poisson, &residual_poisson, &iters_poisson, params);
+
+        communicate(pressure, params);
+        pressure_bc(pressure, params);
+        velocity_project(u_predict, v_predict, w_predict, u, v, w, pressure, params);
+
+        if (params->time > params->time_log - 0.5*params->dt)
+        {
+            if (params->process_rank == 0)
+            {
+                printf("--------------------------------------------------------------------------------\n");
+                printf("Step completed!\n");
+                printf("    time = %.3e\n", params->time);
+                printf("    Poisson: residual = %.3e, iters = %d\n", residual_poisson, iters_poisson);
+            }
+            params->time_log += params->dt_log;
+        }
+
+        params->time += params->dt;
     }
-    communicate_scalar(pressure, params);
-    pressure_bc(pressure, params);
 
-    double residual;
-    int iters;
-    poisson_solve(pressure, rhs, r, p, q, &residual, &iters, params);
+    free(r_poisson);
+    free(p_poisson);
+    free(q_poisson);
 
-    if (params->process_rank == 0)
-        printf("Iterations: %d, residual: %.3e\n", iters, residual);
-
-    output_scalar(pressure, "pressure", params);
+    free(divergence);
 
     free(pressure);
+
+    free(u_predict);
+    free(v_predict);
+    free(w_predict);
+
+    free(u);
+    free(v);
+    free(w);
+
     free(params);
     MPI_Finalize();
     return 0;

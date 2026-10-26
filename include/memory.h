@@ -3,6 +3,6 @@
 
 #include "datatypes.h"
 
-void allocate_scalar(double **scalar, ParamBag *params);
+void allocate(double **scalar, ParamBag *params);
 
 #endif

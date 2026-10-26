@@ -26,9 +26,19 @@
     const double LX = params->LX; \
     const double LY = params->LY; \
     const double LZ = params->LZ; \
-    const double h = params->h; \
-    (void)i_start; (void)i_end; (void)j_start; (void)j_end; (void)k_start; (void)k_end; (void)NX; (void)NY; (void)NZ; (void)NX_proc; (void)NY_proc; (void)NZ_proc; (void)LX; (void)LY; (void)LZ; (void)h;
+    const double dx = params->dx; \
+    (void)i_start; (void)i_end; (void)j_start; (void)j_end; (void)k_start; (void)k_end; (void)NX; (void)NY; (void)NZ; (void)NX_proc; (void)NY_proc; (void)NZ_proc; (void)LX; (void)LY; (void)LZ; (void)dx;
 
-#define PHYS(i) (((double)i + 0.5)*h)
+#define UNPACK_POSITIONS \
+    const double x_face = PHYS_FACE(i); \
+    const double y_face = PHYS_FACE(j); \
+    const double z_face = PHYS_FACE(k); \
+    const double x_center = PHYS_CENTER(i); \
+    const double y_center = PHYS_CENTER(j); \
+    const double z_center = PHYS_CENTER(k); \
+    (void)x_face; (void)y_face; (void)z_face; (void)x_center; (void)y_center; (void)z_center;
+
+#define PHYS_CENTER(i) (((double)i + 0.5)*dx)
+#define PHYS_FACE(i) ((double)i*dx)
 
 #endif

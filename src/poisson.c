@@ -17,9 +17,9 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
 
         // At no-slip boundary conditions, zero normal gradients. 
         // At dirichlet boundary, set to specific value.
-        const double d2dx2 = (scalar[IDX(i-1,j,k)] - 2.0*scalar[idx0] + scalar[IDX(i+1,j,k)]) / (h*h);
-        const double d2dy2 = (scalar[IDX(i,j-1,k)] - 2.0*scalar[idx0] + scalar[IDX(i,j+1,k)]) / (h*h);
-        const double d2dz2 = (scalar[IDX(i,j,k-1)] - 2.0*scalar[idx0] + scalar[IDX(i,j,k+1)]) / (h*h);
+        const double d2dx2 = (scalar[IDX(i-1,j,k)] - 2.0*scalar[idx0] + scalar[IDX(i+1,j,k)]) / (dx*dx);
+        const double d2dy2 = (scalar[IDX(i,j-1,k)] - 2.0*scalar[idx0] + scalar[IDX(i,j+1,k)]) / (dx*dx);
+        const double d2dz2 = (scalar[IDX(i,j,k-1)] - 2.0*scalar[idx0] + scalar[IDX(i,j,k+1)]) / (dx*dx);
 
         const double lhs = d2dx2 + d2dy2 + d2dz2;
 
@@ -30,14 +30,18 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
     double residual_initial;
     MPI_Allreduce(&residual_initial_local, &residual_initial, 1, MPI_DOUBLE, MPI_SUM, params->comm_cart);
 
-    if (params->process_rank == 0)
-        printf("Initial residual: %.3e\n", residual_initial);
+    if (residual_initial < 1e-12)
+    {
+        *residual = residual_initial;
+        *iters = 0;
+        return;
+    }
 
     *iters = 0;
     double residual_previous = residual_initial;
     while (*iters < 1000)
     {
-        communicate_scalar(p, params);
+        communicate(p, params);
         pressure_poisson_bc(p, params);
 
         double alpha_denom_local = 0.0;
@@ -48,9 +52,9 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
             // At no-slip boundary conditions, zero normal gradients. 
             // At dirichlet boundary, set to zero.
             // These two rules are defined by scalar_new = scalar_old + alpha p. 
-            const double d2dx2 = (p[IDX(i-1,j,k)] - 2.0*p[idx0] + p[IDX(i+1,j,k)]) / (h*h);
-            const double d2dy2 = (p[IDX(i,j-1,k)] - 2.0*p[idx0] + p[IDX(i,j+1,k)]) / (h*h);
-            const double d2dz2 = (p[IDX(i,j,k-1)] - 2.0*p[idx0] + p[IDX(i,j,k+1)]) / (h*h);
+            const double d2dx2 = (p[IDX(i-1,j,k)] - 2.0*p[idx0] + p[IDX(i+1,j,k)]) / (dx*dx);
+            const double d2dy2 = (p[IDX(i,j-1,k)] - 2.0*p[idx0] + p[IDX(i,j+1,k)]) / (dx*dx);
+            const double d2dz2 = (p[IDX(i,j,k-1)] - 2.0*p[idx0] + p[IDX(i,j,k+1)]) / (dx*dx);
 
             q[idx0] = d2dx2 + d2dy2 + d2dz2;
 

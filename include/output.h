@@ -3,6 +3,6 @@
 
 #include "datatypes.h"
 
-void output_scalar(double *scalar, char *name, ParamBag *params);
+void output(double *scalar, char *name, ParamBag *params);
 
 #endif

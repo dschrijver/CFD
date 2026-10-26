@@ -3,6 +3,6 @@
 
 #include "datatypes.h"
 
-void communicate_scalar(double *scalar, ParamBag *params);
+void communicate(double *field, ParamBag *params);
 
 #endif

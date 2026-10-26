@@ -106,9 +106,9 @@ void initialize_MPI(ParamBag *params)
     params->NY_proc = params->j_end - params->j_start;
     params->NZ_proc = params->k_end - params->k_start;
 
-    params->LX = params->NX * params->h;
-    params->LY = params->NY * params->h;
-    params->LZ = params->NZ * params->h;
+    params->LX = params->NX * params->dx;
+    params->LY = params->NY * params->dx;
+    params->LZ = params->NZ * params->dx;
 }
 
 void initialize_HDF5(ParamBag *params)
@@ -136,4 +136,30 @@ void initialize_HDF5(ParamBag *params)
     params->dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
     params->dxpl_id = H5Pcreate(H5P_DATASET_XFER);
     H5Pset_dxpl_mpio(params->dxpl_id, H5FD_MPIO_COLLECTIVE);
+}
+
+void initialize_fields(double *u, double *v, double *w, double *pressure, ParamBag *params)
+{
+    UNPACK_GRID
+
+    FOR_DOMAIN
+    {
+        UNPACK_POSITIONS
+
+        const int idx0 = IDX(i, j, k);
+
+#ifdef INI_STATIONARY
+        u[idx0] = 0.0;
+        v[idx0] = 0.0;
+        w[idx0] = 0.0;
+#endif
+
+#ifdef INI_PARABOLIC
+        u[idx0] = 4.0 * INI_PARABOLIC * y_center * (LY - y_center);
+        v[idx0] = 0.0;
+        w[idx0] = 0.0;
+#endif
+
+        pressure[idx0] = 0.0;
+    }
 }
