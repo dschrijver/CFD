@@ -4,7 +4,7 @@
 #include "../include/bc.h"
 
 // Solves nabla^2 scalar = rhs with conjugate gradient method. 
-void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q, double *residual, int *iters, ParamBag *params)
+void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q, double *residual, int *iters, BufferBag *buffers, ParamBag *params)
 {
     UNPACK_GRID
 
@@ -41,7 +41,7 @@ void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q,
     double residual_previous = residual_initial;
     while (*iters < 1000)
     {
-        communicate(p, params);
+        communicate(p, buffers, params);
         pressure_poisson_bc(p, params);
 
         double alpha_denom_local = 0.0;

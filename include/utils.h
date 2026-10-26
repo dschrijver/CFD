@@ -38,6 +38,17 @@
     const double z_center = PHYS_CENTER(k); \
     (void)x_face; (void)y_face; (void)z_face; (void)x_center; (void)y_center; (void)z_center;
 
+#define UNPACK_BUFFERS \
+    const int buffer_number_x = buffers->buffer_number_x; \
+    const int buffer_number_y = buffers->buffer_number_y; \
+    const int buffer_number_z = buffers->buffer_number_z; \
+    double *send_buffer_x = buffers->send_buffer_x; \
+    double *send_buffer_y = buffers->send_buffer_y; \
+    double *send_buffer_z = buffers->send_buffer_z; \
+    double *recv_buffer_x = buffers->recv_buffer_x; \
+    double *recv_buffer_y = buffers->recv_buffer_y; \
+    double *recv_buffer_z = buffers->recv_buffer_z;
+
 #define PHYS_CENTER(i) (((double)i + 0.5)*dx)
 #define PHYS_FACE(i) ((double)i*dx)
 

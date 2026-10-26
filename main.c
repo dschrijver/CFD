@@ -46,6 +46,10 @@ int main(int argc, char **argv)
     allocate(&p_poisson, params);
     allocate(&q_poisson, params);
 
+    // Communication buffers
+    BufferBag *buffers = (BufferBag *)malloc(sizeof(BufferBag));
+    allocate_buffers(buffers, params);
+
     initialize_fields(u, v, w, pressure, params);
 
     params->time = 0.0;
@@ -69,23 +73,23 @@ int main(int argc, char **argv)
             params->time_output += params->dt_output;
         }
 
-        communicate(u, params);
-        communicate(v, params);
-        communicate(w, params);
+        communicate(u, buffers, params);
+        communicate(v, buffers, params);
+        communicate(w, buffers, params);
         velocity_bc(u, v, w, params);
         predict_velocities(u, v, w, u_predict, v_predict, w_predict, params);
 
-        communicate(u_predict, params);
-        communicate(v_predict, params);
-        communicate(w_predict, params);
+        communicate(u_predict, buffers, params);
+        communicate(v_predict, buffers, params);
+        communicate(w_predict, buffers, params);
         velocity_bc(u_predict, v_predict, w_predict, params);
         compute_divergence(u_predict, v_predict, w_predict, divergence, params);
 
-        communicate(pressure, params);
+        communicate(pressure, buffers, params);
         pressure_bc(pressure, params);
-        poisson_solve(pressure, divergence, r_poisson, p_poisson, q_poisson, &residual_poisson, &iters_poisson, params);
+        poisson_solve(pressure, divergence, r_poisson, p_poisson, q_poisson, &residual_poisson, &iters_poisson, buffers, params);
 
-        communicate(pressure, params);
+        communicate(pressure, buffers, params);
         pressure_bc(pressure, params);
         velocity_project(u_predict, v_predict, w_predict, u, v, w, pressure, params);
 
@@ -108,6 +112,8 @@ int main(int argc, char **argv)
     output(v, "v", params);
     output(w, "w", params);
     output(pressure, "pressure", params);
+
+    free_buffers(buffers);
 
     free(r_poisson);
     free(p_poisson);

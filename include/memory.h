@@ -3,6 +3,8 @@
 
 #include "datatypes.h"
 
-void allocate(double **scalar, ParamBag *params);
+void allocate(double **field, ParamBag *params);
+void allocate_buffers(BufferBag *buffers, ParamBag *params);
+void free_buffers(BufferBag *buffers);
 
 #endif

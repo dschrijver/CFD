@@ -4,25 +4,14 @@
 #include "../include/datatypes.h"
 #include "../include/utils.h"
 
-void communicate(double *field, ParamBag *params)
+void communicate(double *field, BufferBag *buffers, ParamBag *params)
 {
     UNPACK_GRID
+    UNPACK_BUFFERS
 
     MPI_Comm comm_cart = params->comm_cart;
 
     MPI_Status status_first;
-
-    const int buffer_number_x = NY_proc * NZ_proc;
-    const int buffer_number_y = NX_proc * NZ_proc;
-    const int buffer_number_z = NX_proc * NY_proc;
-
-    double *send_buffer_x = (double *)malloc(buffer_number_x * sizeof(double));
-    double *send_buffer_y = (double *)malloc(buffer_number_y * sizeof(double));
-    double *send_buffer_z = (double *)malloc(buffer_number_z * sizeof(double));
-
-    double *recv_buffer_x = (double *)malloc(buffer_number_x * sizeof(double));
-    double *recv_buffer_y = (double *)malloc(buffer_number_y * sizeof(double));
-    double *recv_buffer_z = (double *)malloc(buffer_number_z * sizeof(double));
  
     // Communicate to left
     for (int j = j_start; j < j_end; j++)
@@ -125,12 +114,4 @@ void communicate(double *field, ParamBag *params)
             field[IDX(i, j, k_start - 1)] = recv_buffer_z[NY_proc*(i - i_start) + (j - j_start)];
         }
     }
-
-    free(send_buffer_x);
-    free(send_buffer_y);
-    free(send_buffer_z);
-
-    free(recv_buffer_x);
-    free(recv_buffer_y);
-    free(recv_buffer_z);
 }

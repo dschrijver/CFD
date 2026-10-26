@@ -3,6 +3,6 @@
 
 #include "datatypes.h"
 
-void communicate(double *field, ParamBag *params);
+void communicate(double *field, BufferBag *buffers, ParamBag *params);
 
 #endif

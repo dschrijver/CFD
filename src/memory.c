@@ -1,8 +1,9 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include "../include/datatypes.h"
 
-void allocate(double **scalar, ParamBag *params)
+void allocate(double **field, ParamBag *params)
 {
     // Scalar:
     // N physical nodes: 0.5, 1.5, ... N-0.5
@@ -18,5 +19,31 @@ void allocate(double **scalar, ParamBag *params)
 
     const int N = (params->NX_proc + 2) * (params->NY_proc + 2) * (params->NZ_proc + 2);
 
-    *scalar = (double *)malloc(N * sizeof(double));
+    *field = (double *)malloc(N * sizeof(double));
+}
+
+void allocate_buffers(BufferBag *buffers, ParamBag *params)
+{
+    buffers->buffer_number_x = params->NY_proc * params->NZ_proc;
+    buffers->buffer_number_y = params->NX_proc * params->NZ_proc;
+    buffers->buffer_number_z = params->NX_proc * params->NY_proc;
+
+    buffers->send_buffer_x = (double *)malloc(buffers->buffer_number_x * sizeof(double));
+    buffers->send_buffer_y = (double *)malloc(buffers->buffer_number_y * sizeof(double));
+    buffers->send_buffer_z = (double *)malloc(buffers->buffer_number_z * sizeof(double));
+
+    buffers->recv_buffer_x = (double *)malloc(buffers->buffer_number_x * sizeof(double));
+    buffers->recv_buffer_y = (double *)malloc(buffers->buffer_number_y * sizeof(double));
+    buffers->recv_buffer_z = (double *)malloc(buffers->buffer_number_z * sizeof(double));
+}
+
+void free_buffers(BufferBag *buffers)
+{
+    free(buffers->send_buffer_x);
+    free(buffers->send_buffer_y);
+    free(buffers->send_buffer_z);
+    free(buffers->recv_buffer_x);
+    free(buffers->recv_buffer_y);
+    free(buffers->recv_buffer_z);
+    free(buffers);
 }

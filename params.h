@@ -5,19 +5,19 @@
 
 static inline void set_params(ParamBag *params)
 {
-    params->NX = 1;
+    params->NX = 100;
     params->NY = 100;
     params->NZ = 1;
     params->dx = 0.01;
 
-    params->t_final = 100.0;
+    params->t_final = 1.0;
     params->dt = 1e-3;
 
-    params->dt_output = 1.0;
-    params->dt_log = 0.1;
+    params->dt_output = 1e-1;
+    params->dt_log = 1e-2;
 
     params->Re = 100.0;
-    params->Fx = 1.0;
+    params->Fx = 0.0;
     params->Fy = 0.0;
     params->Fz = 0.0;
 

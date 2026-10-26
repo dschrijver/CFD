@@ -60,4 +60,18 @@ typedef struct ParamBag
     hid_t dxpl_id;
 } ParamBag;
 
+typedef struct BufferBag
+{
+    int buffer_number_x;
+    int buffer_number_y;
+    int buffer_number_z;
+
+    double *send_buffer_x; 
+    double *send_buffer_y;
+    double *send_buffer_z;
+    double *recv_buffer_x;
+    double *recv_buffer_y;
+    double *recv_buffer_z;
+} BufferBag;
+
 #endif

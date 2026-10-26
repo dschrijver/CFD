@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 
 #include "../include/datatypes.h"
 #include "../definitions.h"
@@ -157,6 +158,12 @@ void initialize_fields(double *u, double *v, double *w, double *pressure, ParamB
 #ifdef INI_PARABOLIC
         u[idx0] = 4.0 * INI_PARABOLIC * y_center * (LY - y_center);
         v[idx0] = 0.0;
+        w[idx0] = 0.0;
+#endif
+
+#ifdef INI_TAYLORGREEN
+        u[idx0] = sin(x_face)*cos(y_center);
+        v[idx0] = -cos(x_center)*sin(y_face);
         w[idx0] = 0.0;
 #endif
 

@@ -5,17 +5,18 @@
 //     Boundary conditions        
 // ---------------------------
 #define XPERIODIC
-// #define YPERIODIC
+#define YPERIODIC
 #define ZPERIODIC
 
 // #define LEFT_NOSLIP
 // #define RIGHT_NOSLIP
-#define BOTTOM_NOSLIP
-#define TOP_NOSLIP
+// #define BOTTOM_NOSLIP
+// #define TOP_NOSLIP
 // #define BACK_NOSLIP
 // #define FRONT_NOSLIP
 
-#define INI_STATIONARY
+// #define INI_STATIONARY
 // #define INI_PARABOLIC 1.0
+#define INI_TAYLORGREEN
 
 #endif
