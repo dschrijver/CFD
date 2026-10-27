@@ -30,7 +30,11 @@ void velocity_bc(double *u, double *v, double *w, ParamBag *params)
 #ifdef BOTTOM_NOSLIP
     if (j_start == 0) for (int i = i_start; i < i_end; i++) for (int k = k_start; k < k_end; k++)
     {
+#ifdef BOTTOM_U
+        u[IDX(i, j_start - 1, k)] = -u[IDX(i, j_start, k)] + 2.0 * BOTTOM_U;
+#else
         u[IDX(i, j_start - 1, k)] = -u[IDX(i, j_start, k)];
+#endif
         v[IDX(i, j_start, k)] = 0.0;
         w[IDX(i, j_start - 1, k)] = -w[IDX(i, j_start, k)];
     }
@@ -38,7 +42,11 @@ void velocity_bc(double *u, double *v, double *w, ParamBag *params)
 #ifdef TOP_NOSLIP
     if (j_end == NY) for (int i = i_start; i < i_end; i++) for (int k = k_start; k < k_end; k++)
     {
+#ifdef TOP_U
+        u[IDX(i, j_end, k)] = -u[IDX(i, j_end - 1, k)] + 2.0 * TOP_U;
+#else
         u[IDX(i, j_end, k)] = -u[IDX(i, j_end - 1, k)];
+#endif
         v[IDX(i, j_end, k)] = 0.0;
         w[IDX(i, j_end, k)] = -w[IDX(i, j_end - 1, k)];
     }

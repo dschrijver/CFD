@@ -65,7 +65,7 @@ void predict_velocity_v(double *u, double *v, double *w, double *v_predict, Para
         const double w_F = 0.5 * (w[IDX(i, j - 1, k + 1)] + w[IDX(i, j, k + 1)]); 
 
         const double dx_vu = (v_E*u_E - v_W*u_W) / dx;
-        const double dy_vv = (v_N*v_N - v_S*v_S) / (2.0*dx);
+        const double dy_vv = (v_N*v_N - v_S*v_S) / dx;
         const double dz_vw = (v_F*w_F - v_B*w_B) / dx;
 
         // Viscous term
@@ -104,7 +104,7 @@ void predict_velocity_w(double *u, double *v, double *w, double *w_predict, Para
 
         const double dx_wu = (w_E*u_E - w_W*u_W) / dx;
         const double dy_wv = (w_N*v_N - w_S*v_S) / dx;
-        const double dz_ww = (w_F*w_F - w_B*w_B) / (2.0*dx);
+        const double dz_ww = (w_F*w_F - w_B*w_B) / dx;
 
         // Viscous term
         const double dxx_w = (w[IDX(i - 1, j, k)] - 2.0*w[idx0] + w[IDX(i + 1, j, k)]) / (dx*dx);
