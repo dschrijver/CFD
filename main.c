@@ -41,8 +41,9 @@ int main(int argc, char **argv)
     allocate(&divergence, params);
 
     // Used for Poisson solver
-    double *r_poisson, *p_poisson, *q_poisson;
+    double *r_poisson, *s_poisson, *p_poisson, *q_poisson;
     allocate(&r_poisson, params);
+    allocate(&s_poisson, params);
     allocate(&p_poisson, params);
     allocate(&q_poisson, params);
 
@@ -50,50 +51,100 @@ int main(int argc, char **argv)
     BufferBag *buffers = (BufferBag *)malloc(sizeof(BufferBag));
     allocate_buffers(buffers, params);
 
-    initialize_fields(u, v, w, pressure, params);
+    // Poisson fields
+    PoissonBag *poisson = (PoissonBag *)malloc(sizeof(PoissonBag));
+    allocate_poisson(poisson, params);
+
+    initialize_fields(u, v, w, pressure, divergence, params);
 
     params->time = 0.0;
-    params->time_output = 0.0;
-    params->time_log = 0.0;
     params->n_output = 0;
+
+    output(u, "u", params);
+    output(v, "v", params);
+    output(w, "w", params);
+    output(divergence, "divergence", params);
+    output(pressure, "pressure", params);
+
+    params->time_log = params->dt_log;
+    params->time_output = params->dt_output;
+    params->n_output = 1;
 
     double residual_poisson = 0.0;
     int iters_poisson = 0;
+
+    char output_info[128];
+
+    double start_substep = 0.0, duration_substep = 0.0;
+
     while (params->time < params->t_final)
     {
+        // LOGGING TIME
+        if (params->time > params->time_log - 1.5*params->dt)
+        {
+            if (params->process_rank == 0)
+            {
+                printf("================================================================================\n");
+                printf("Time = %.3e\n", params->time);
+                printf("--------------------------------------------------------------------------------\n");
+            }
+        }
+
+        TIME("> Predict velocities...", 
+            communicate(u, buffers, params);
+            communicate(v, buffers, params);
+            communicate(w, buffers, params);
+            velocity_bc(u, v, w, params);
+            predict_velocity_u(u, v, w, u_predict, params);
+            predict_velocity_v(u, v, w, v_predict, params);
+            predict_velocity_w(u, v, w, w_predict, params);
+        )
+
+        TIME("> Predicted divergence...", 
+            communicate(u_predict, buffers, params);
+            communicate(v_predict, buffers, params);
+            communicate(w_predict, buffers, params);
+            velocity_bc(u_predict, v_predict, w_predict, params);
+            compute_divergence(u_predict, v_predict, w_predict, divergence, params);
+        )
+
+        TIME("> Solve pressure...", 
+            communicate(pressure, buffers, params);
+            pressure_bc(pressure, params);
+            poisson_solve(pressure, divergence, &residual_poisson, &iters_poisson, poisson, buffers, params);
+        )
+
+        TIME("> Project velocities...", 
+            communicate(pressure, buffers, params);
+            pressure_bc(pressure, params);
+            velocity_project(u_predict, v_predict, w_predict, u, v, w, pressure, params);
+        )
+
+        TIME("> Final divergence...", 
+            communicate(u, buffers, params);
+            communicate(v, buffers, params);
+            communicate(w, buffers, params);
+            velocity_bc(u, v, w, params);
+            compute_divergence(u, v, w, divergence, params);
+        )
+
+        params->time += params->dt;
+
         if (params->time > params->time_output - 0.5*params->dt)
         {
-            output(u, "u", params);
-            output(v, "v", params);
-            output(w, "w", params);
-            output(pressure, "pressure", params);
+            TIME_OUTPUT
+            (
+                output(u, "u", params);
+                output(v, "v", params);
+                output(w, "w", params);
+                output(divergence, "divergence", params);
+                output(pressure, "pressure", params);
+            )
 
             params->n_output += 1;
 
             params->time_output += params->dt_output;
         }
-
-        communicate(u, buffers, params);
-        communicate(v, buffers, params);
-        communicate(w, buffers, params);
-        velocity_bc(u, v, w, params);
-        predict_velocity_u(u, v, w, u_predict, params);
-        predict_velocity_v(u, v, w, v_predict, params);
-        predict_velocity_w(u, v, w, w_predict, params);
-
-        communicate(u_predict, buffers, params);
-        communicate(v_predict, buffers, params);
-        communicate(w_predict, buffers, params);
-        velocity_bc(u_predict, v_predict, w_predict, params);
-        compute_divergence(u_predict, v_predict, w_predict, divergence, params);
-
-        communicate(pressure, buffers, params);
-        pressure_bc(pressure, params);
-        poisson_solve(pressure, divergence, r_poisson, p_poisson, q_poisson, &residual_poisson, &iters_poisson, buffers, params);
-
-        communicate(pressure, buffers, params);
-        pressure_bc(pressure, params);
-        velocity_project(u_predict, v_predict, w_predict, u, v, w, pressure, params);
 
         if (params->time > params->time_log - 0.5*params->dt)
         {
@@ -101,13 +152,10 @@ int main(int argc, char **argv)
             {
                 printf("--------------------------------------------------------------------------------\n");
                 printf("Step completed!\n");
-                printf("    time = %.3e\n", params->time);
-                printf("    Poisson: residual = %.3e, iters = %d\n", residual_poisson, iters_poisson);
+                printf("    Maximum divergence: = %.3e, CGM iters = %d\n", residual_poisson, iters_poisson);
             }
             params->time_log += params->dt_log;
         }
-
-        params->time += params->dt;
     }
 
     output(u, "u", params);
@@ -115,11 +163,9 @@ int main(int argc, char **argv)
     output(w, "w", params);
     output(pressure, "pressure", params);
 
-    free_buffers(buffers);
+    free_poisson(poisson);
 
-    free(r_poisson);
-    free(p_poisson);
-    free(q_poisson);
+    free_buffers(buffers);
 
     free(divergence);
 

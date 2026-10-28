@@ -139,7 +139,7 @@ void initialize_HDF5(ParamBag *params)
     H5Pset_dxpl_mpio(params->dxpl_id, H5FD_MPIO_COLLECTIVE);
 }
 
-void initialize_fields(double *u, double *v, double *w, double *pressure, ParamBag *params)
+void initialize_fields(double *u, double *v, double *w, double *pressure, double *divergence, ParamBag *params)
 {
     UNPACK_GRID
 
@@ -168,5 +168,6 @@ void initialize_fields(double *u, double *v, double *w, double *pressure, ParamB
 #endif
 
         pressure[idx0] = 0.0;
+        divergence[idx0] = 0.0;
     }
 }

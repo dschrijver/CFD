@@ -49,7 +49,43 @@
     double *recv_buffer_y = buffers->recv_buffer_y; \
     double *recv_buffer_z = buffers->recv_buffer_z;
 
+#define UNPACK_POISSON \
+    double *r = poisson->r; \
+    double *p = poisson->p; \
+    double *q = poisson->q;
+
 #define PHYS_CENTER(i) (((double)i + 0.5)*dx)
 #define PHYS_FACE(i) ((double)i*dx)
+
+#define TIME(name, functions)                                        \
+    if ((params->process_rank == 0) && (params->time > params->time_log - 1.5*params->dt)) \
+    {                                                                \
+        printf("%-70s", name);                                       \
+    }                                                                \
+    MPI_Barrier(MPI_COMM_WORLD);                                     \
+    start_substep = MPI_Wtime();                                     \
+    functions                                                        \
+        MPI_Barrier(MPI_COMM_WORLD);                                 \
+    duration_substep = MPI_Wtime() - start_substep;                  \
+    if ((params->process_rank == 0) && (params->time > params->time_log - 1.5*params->dt)) \
+    {                                                                \
+        printf("[%8.5fs]\n", duration_substep);                      \
+    }
+
+#define TIME_OUTPUT(functions)                                                                \
+    if ((params->process_rank == 0) && (params->time > params->time_log - 1.5*params->dt))                          \
+    {                                                                                         \
+        sprintf(output_info, "> \033[0;32mOutput to data_%d.h5...\033[0m", params->n_output); \
+        printf("%-81s", output_info);                                                         \
+    }                                                                                         \
+    MPI_Barrier(MPI_COMM_WORLD);                                                              \
+    start_substep = MPI_Wtime();                                                              \
+    functions                                                                                 \
+        MPI_Barrier(MPI_COMM_WORLD);                                                          \
+    duration_substep = MPI_Wtime() - start_substep;                                           \
+    if ((params->process_rank == 0) && (params->time > params->time_log - 1.5*params->dt))                          \
+    {                                                                                         \
+        printf("[%8.5fs]\n", duration_substep);                                               \
+    }
 
 #endif

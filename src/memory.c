@@ -37,6 +37,23 @@ void allocate_buffers(BufferBag *buffers, ParamBag *params)
     buffers->recv_buffer_z = (double *)malloc(buffers->buffer_number_z * sizeof(double));
 }
 
+void allocate_poisson(PoissonBag *poisson, ParamBag *params)
+{
+    const int N = (params->NX_proc + 2) * (params->NY_proc + 2) * (params->NZ_proc + 2);
+
+    poisson->r = (double *)malloc(N * sizeof(double));
+    poisson->p = (double *)malloc(N * sizeof(double));
+    poisson->q = (double *)malloc(N * sizeof(double));
+}
+
+void free_poisson(PoissonBag *poisson)
+{
+    free(poisson->r);
+    free(poisson->p);
+    free(poisson->q);
+    free(poisson);
+}
+
 void free_buffers(BufferBag *buffers)
 {
     free(buffers->send_buffer_x);

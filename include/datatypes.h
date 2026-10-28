@@ -74,4 +74,11 @@ typedef struct BufferBag
     double *recv_buffer_z;
 } BufferBag;
 
+typedef struct PoissonBag
+{
+    double *r;
+    double *p;
+    double *q;
+} PoissonBag;
+
 #endif

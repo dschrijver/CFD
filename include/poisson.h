@@ -3,6 +3,6 @@
 
 #include "datatypes.h"
 
-void poisson_solve(double *scalar, double *rhs, double *r, double *p, double *q, double *residual, int *iters, BufferBag *buffers, ParamBag *params);
+void poisson_solve(double *scalar, double *rhs, double *residual, int *iters, PoissonBag *poisson, BufferBag *buffers, ParamBag *params);
 
 #endif

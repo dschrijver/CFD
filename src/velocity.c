@@ -119,8 +119,6 @@ void compute_divergence(double *u, double *v, double *w, double *divergence, Par
 {
     UNPACK_GRID
 
-    const double dt = params->dt;
-
     FOR_DOMAIN
     {
         const int idx0 = IDX(i, j, k);
@@ -129,7 +127,7 @@ void compute_divergence(double *u, double *v, double *w, double *divergence, Par
         const double dy_v = (v[IDX(i, j + 1, k)] - v[idx0]) / dx;
         const double dz_w = (w[IDX(i, j, k + 1)] - w[idx0]) / dx;
 
-        divergence[idx0] = (dx_u + dy_v + dz_w) / dt;
+        divergence[idx0] = dx_u + dy_v + dz_w;
     }
 }
 
