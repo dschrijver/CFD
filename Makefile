@@ -17,6 +17,10 @@ HEAD = $(wildcard include/*.h)
 OBJ = $(patsubst src/%.c,obj/%.o,$(SRC))
 HDF5_TAR = $(wildcard archives/hdf5*.tar.gz)
 
+cfd: $(OBJ) obj/main.o
+	@printf '\033[1;32mCCLD %s\033[0m\n' "$^"
+	@$(CC) $^ -o $@  $(CFLAGS)
+
 obj/%.o: src/%.c definitions.h $(HEAD)
 	@mkdir -p obj
 	@printf '\033[1;34mCC   %s\033[0m\n' "$<"
@@ -26,10 +30,6 @@ obj/main.o: main.c definitions.h params.h $(HEAD)
 	@mkdir -p obj
 	@printf '\033[1;34mCC   %s\033[0m\n' "$<"
 	@$(CC) -c $< -o $@ $(CFLAGS)
-
-cfd: $(OBJ) obj/main.o
-	@printf '\033[1;32mCCLD %s\033[0m\n' "$^"
-	@$(CC) $^ -o $@  $(CFLAGS)
 
 clean:
 	rm -rf cfd obj

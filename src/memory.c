@@ -64,3 +64,22 @@ void free_buffers(BufferBag *buffers)
     free(buffers->recv_buffer_z);
     free(buffers);
 }
+
+int get_VmRSS(ParamBag *params) 
+{
+    FILE *f = fopen("/proc/self/status", "r");
+    char line[128];
+
+    int VmRSS, total_VmRSS = 0;
+    while (fgets(line, 128, f)) {
+        if (strncmp(line, "VmRSS:", 6) == 0) {
+            sscanf(line, "VmRSS: %d", &VmRSS);      
+            break;
+        }
+    }
+    fclose(f);
+
+    MPI_Reduce(&VmRSS, &total_VmRSS, 1, MPI_INT, MPI_SUM, 0, params->comm_cart);
+
+    return total_VmRSS;
+}

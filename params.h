@@ -16,7 +16,7 @@ static inline void set_params(ParamBag *params)
     params->dt = 1e-4;
 
     params->dt_output = 1.0;
-    params->dt_log = 1e-2;
+    params->dt_log = 1e-1;
 
     params->Re = 100.0;
     params->Fx = 0.0;

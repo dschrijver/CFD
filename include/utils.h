@@ -60,7 +60,7 @@
 #define TIME(name, functions)                                        \
     if ((params->process_rank == 0) && (params->time > params->time_log - 1.5*params->dt)) \
     {                                                                \
-        printf("%-70s", name);                                       \
+        printf("%-69s", name);                                       \
     }                                                                \
     MPI_Barrier(MPI_COMM_WORLD);                                     \
     start_substep = MPI_Wtime();                                     \
@@ -76,7 +76,7 @@
     if ((params->process_rank == 0) && (params->time > params->time_log - 1.5*params->dt))                          \
     {                                                                                         \
         sprintf(output_info, "> \033[0;32mOutput to data_%d.h5...\033[0m", params->n_output); \
-        printf("%-81s", output_info);                                                         \
+        printf("%-80s", output_info);                                                         \
     }                                                                                         \
     MPI_Barrier(MPI_COMM_WORLD);                                                              \
     start_substep = MPI_Wtime();                                                              \
