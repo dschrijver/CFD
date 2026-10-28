@@ -23,7 +23,7 @@ static inline void set_params(ParamBag *params)
     params->Fy = 0.0;
     params->Fz = 0.0;
 
-    params->poisson_epsilon = 1e-8;
+    params->poisson_epsilon = 1e-6;
 }
 
 #endif
