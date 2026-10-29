@@ -4,7 +4,7 @@
 // ---------------------------
 //     Boundary conditions        
 // ---------------------------
-#define XPERIODIC
+// #define XPERIODIC
 // #define YPERIODIC
 #define ZPERIODIC
 

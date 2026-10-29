@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "../include/datatypes.h"
 #include "../include/utils.h"
 
@@ -149,4 +151,27 @@ void velocity_project(double *u_predict, double *v_predict, double *w_predict, d
         v[idx0] = v_predict[idx0] - dt*dy_p;
         w[idx0] = w_predict[idx0] - dt*dz_p;
     }
+}
+
+double compute_CFL(double *u, double *v, double *w, ParamBag *params)
+{
+    UNPACK_GRID
+
+    double CFL_local = 0.0;
+    FOR_DOMAIN
+    {
+        const int idx0 = IDX(i, j, k);
+
+        double u_i = fabs(u[idx0]);
+        double v_i = fabs(v[idx0]);
+        double w_i = fabs(w[idx0]);
+
+        const double CFL_i = (u_i + v_i + w_i) / dx;
+        if (CFL_i > CFL_local) CFL_local = CFL_i;
+    }
+
+    double CFL;
+    MPI_Allreduce(&CFL_local, &CFL, 1, MPI_DOUBLE, MPI_MAX, params->comm_cart);
+
+    return CFL * params->dt;
 }

@@ -149,12 +149,14 @@ int main(int argc, char **argv)
         if (params->time > params->time_log - 0.5*params->dt)
         {
             int current_total_VmRSS = get_VmRSS(params);
+            double CFL = compute_CFL(u, v, w, params);
             if (params->process_rank == 0)
             {
                 printf("--------------------------------------------------------------------------------\n");
                 printf("Step completed!\n");
                 printf("    Total memory in use (VmRSS): %'d kB\n", current_total_VmRSS);
-                printf("    Maximum divergence: = %.3e, CGM iters = %d\n", residual_poisson, iters_poisson);
+                printf("    Maximum divergence: %.3e, CGM iters = %d\n", residual_poisson, iters_poisson);
+                printf("    CFL number: %.3e\n", CFL);
             }
             params->time_log += params->dt_log;
         }

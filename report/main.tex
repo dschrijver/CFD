@@ -1,0 +1,154 @@
+\documentclass[fleqn,a4paper]{article} % Flush Left Equation Numbers
+
+% --- PACKAGES ---
+\usepackage{graphicx} % Required for inserting images
+\usepackage{a4wide} % Tell LaTeX to use the room there is on the page
+\usepackage[calc,showdow,english]{datetime2} % To get the date of today
+\usepackage{amsmath} % For matrices
+\usepackage{algorithm} % Algorithm
+\usepackage{algpseudocode} % Algorithm
+\usepackage{subcaption} % For captions of subfigures
+\usepackage{booktabs} % toprule
+\usepackage[hidelinks,colorlinks=true,citecolor=red,urlcolor=blue]{hyperref} % Make clickable references which are less ugly (borders removed)
+\usepackage[style=phys, articletitle=false,biblabel=brackets, chaptertitle=false,pageranges=false]{biblatex} % APS style (American Physical Society)
+\usepackage[absolute]{textpos}
+\usepackage{bm} % For bold Greek letters
+\usepackage{siunitx} % For units in equations
+\numberwithin{equation}{section} % For equation numbering
+\numberwithin{figure}{section} % For figure numbering
+\numberwithin{algorithm}{section} % For algorithm numbering
+
+\addbibresource{references.bib}
+
+\begin{document}
+
+\section{Incompressible Navier-Stokes solver in 3D}
+We want to solve the following set of dimensionless equations,
+\begin{equation}\label{eq:continuity}
+    \bm{\nabla}\cdot \bm{u} = 0,
+\end{equation}\label{eq:momentum}
+\begin{equation}
+    \frac{\partial \bm{u}}{\partial t} + \bm{\nabla}\cdot\left(\bm{u} \bm{u}\right) = -\bm{\nabla}p + \frac{1}{\textit{Re}}\nabla^2 \bm{u} + \bm{f}_b,
+\end{equation}
+where $\bm{f}_b$ indicates additional body forces on the fluid. We will use the pressure-projection method to numerically solve these equations. We first discretize Eq.~(\ref{eq:momentum}) without the pressure gradient,
+\begin{equation}
+    \frac{\bm{u}^* - \bm{u}^{n}}{\Delta t} = -L_c\Bigl(\bm{\nabla}\cdot\left(\bm{u} \bm{u}\right)\Bigr) + L_v\left(\frac{1}{\textit{Re}}\nabla^2 \bm{u}\right) + \bm{f}_b. 
+\end{equation}
+We indicated the finite difference stencils for the convective term and viscous term as $L_c$ and $L_v$, respectively. The index $n$ indicates the time level. We now find the following equation for the pressure,
+\begin{equation}\label{eq:poisson}
+    \nabla^2 p^{n+1} = \frac{ \bm{\nabla}\cdot \bm{u}^*}{\Delta t}.
+\end{equation}
+This gives the final velocity after projection,
+\begin{equation}
+    \frac{\bm{u}^{n+1} - \bm{u}^*}{\Delta t} = \bm{\nabla}p^{n+1}. 
+\end{equation}
+\subsection{Staggered grid and spatial stencils}
+We will perform the simulation on a staggered grid. The domain will be defined as $[0, L_x]$, $[0, L_y]$ and $[0, L_z]$. The pressure will be discretized at the cell centers, such that the positions are defined as follows, 
+\begin{equation}
+\begin{split}
+    x &= 0.5 \Delta x, 1.5 \Delta x, 2.5 \Delta x, \ldots, L_x - 0.5\Delta x,\\
+    y &= 0.5 \Delta x, 1.5 \Delta x, 2.5 \Delta x, \ldots, L_y - 0.5\Delta x,\\
+    z &= 0.5 \Delta x, 1.5 \Delta x, 2.5 \Delta x, \ldots, L_z - 0.5\Delta x.
+\end{split}
+\end{equation}
+The velocities are defined at the cell faces along the flow direction,
+\begin{equation}
+\begin{split}
+    x_u &= 0, \Delta x, 2\Delta x, \ldots, L_x,\\
+    y_v &= 0, \Delta x, 2\Delta x, \ldots, L_y,\\
+    z_w &= 0, \Delta x, 2\Delta x, \ldots, L_z,
+\end{split}
+\end{equation}
+where I assumed a square stencil with $\Delta x = \Delta y = \Delta z$. The convective stencil, indicated before as $L_c$, will be given as follows for the $x$ momentum equation,
+\begin{equation}
+\begin{split}
+    \partial_x \left(u^2\right) &= \frac{\left(u^E\right)^2 - \left(u^W\right)^2}{\Delta x} + \mathcal{O}\left(\Delta x^2\right),\\
+    \partial_y \left(u v\right)&= \frac{u^N v^N - u^S v^S}{\Delta x} + \mathcal{O}\left(\Delta x^2\right),\\
+    \partial_z \left(u v\right)&= \frac{u^F w^F - u^B w^B}{\Delta x} + \mathcal{O}\left(\Delta x^2\right).
+\end{split}
+\end{equation}
+The velocities at the cardinal directions are interpolated as follows,
+\begin{equation}
+\begin{split}
+    u^W &= \frac12 \Bigl(u_{i-1, j, k} + u_{i, j, k}\Bigr), \quad u^E = \frac12 \Bigl(u_{i, j, k} + u_{i+1, j, k}\Bigr),\\
+    u^S &= \frac12 \Bigl(u_{i, j-1, k} + u_{i, j, k}\Bigr), \quad u^N = \frac12 \Bigl(u_{i, j, k} + u_{i, j+1, k}\Bigr),\\
+    u^B &= \frac12 \Bigl(u_{i, j, k-1} + u_{i, j, k}\Bigr), \quad u^F = \frac12 \Bigl(u_{i, j, k} + u_{i, j, k+1}\Bigr),\\
+    v^S &= \frac12 \Bigl(v_{i-1, j, k} + v_{i, j, k}\Bigr), \quad v^N = \frac12 \Bigl(v_{i-1, j+1, k} + v_{i, j+1, k}\Bigr),\\
+    w^B &= \frac12 \Bigl(w_{i-1, j, k} + w_{i, j, k}\Bigr), \quad w^F = \frac12 \Bigl(w_{i-1, j, k+1} + w_{i, j, k+1}\Bigr).
+\end{split}
+\end{equation}
+A similar approach will be used for the $y$ and $z$ momentum equations. The viscous stencil, indicated before as $L_v$, will be given as follows for the $x$ momentum equation,
+\begin{equation}
+\begin{split}
+    \partial_x^2 u &= \frac{u_{i - 1, j, k} - 2 u_{i, j, k} + u_{i + 1, j, k}}{\Delta x ^2} + \mathcal{O}\left(\Delta x^2\right),\\
+    \partial_y^2 u &= \frac{u_{i, j-1, k} - 2 u_{i, j, k} + u_{i, j+1, k}}{\Delta x ^2} + \mathcal{O}\left(\Delta x^2\right),\\
+    \partial_z^2 u &= \frac{u_{i, j, k-1} - 2 u_{i, j, k} + u_{i, j, k+1}}{\Delta x ^2} + \mathcal{O}\left(\Delta x^2\right).
+\end{split}
+\end{equation}
+The gradient of pressure will be computed as follows for the $x$ momentum equation,
+\begin{equation}
+    \partial_x p = \frac{p_{i,j,k} - p_{i-1, j, k}}{\Delta x} + \mathcal{O}\left(\Delta x^2\right).
+\end{equation}
+Finally, the divergence will be computed as follows,
+\begin{equation}
+\begin{split}
+    \partial_x u &= \frac{u_{i+1, j, k} - u_{i, j, k}}{\Delta x}+ \mathcal{O}\left(\Delta x^2\right),\\
+    \partial_y v &= \frac{v_{i, j+1, k} - v_{i, j, k}}{\Delta x}+ \mathcal{O}\left(\Delta x^2\right),\\
+    \partial_z w &= \frac{w_{i, j, k+1} - w_{i, j, k}}{\Delta x}+ \mathcal{O}\left(\Delta x^2\right).
+\end{split}
+\end{equation}
+\subsection{Poisson solver}
+We will use the Conjugate Gradient Method to solve Eq.~(\ref{eq:poisson}). This is an iterative method that solves the following Matrix equation,
+\begin{equation}
+    A \bm{x} = \bm{b}. 
+\end{equation}
+Our pressure is denoted by $\bm{x}$, and the divergence is denoted by $\bm{b}$. We start by an initial guess for $\bm{x}$, which is set to the pressure of the previous time step. We then follow with the iterative algorithm~\ref{alg:cgm}. The stopping criterion $|\bm{r}_k|_\text{max}\Delta t > \varepsilon$ sets a maximum $\varepsilon$ of the divergence of the resulting $\bm{u}^{n+1}$ field. I choose this to be $10^{-6}$. 
+\begin{algorithm}
+\caption{The algorithm used to implement the Conjugate Gradient Method}\label{alg:cgm}
+\begin{algorithmic}
+\State $\bm{r}_0 \gets \bm{b} - A \bm{x}_0$ 
+\State $\bm{p}_0 \gets \bm{r}_0$
+\State $k \gets 0$
+\While{$|\bm{r}_k|_\text{max}\Delta t > \varepsilon$}
+    \State $\alpha_k \gets \frac{|\bm{r}_k|^2}{\bm{p}_k \cdot A \bm{p}_k}$
+    \State $\bm{x}_{k+1} \gets \bm{x}_{k} + \alpha_k \bm{p}_k$
+    \State $\bm{r}_{k+1} \gets \bm{r}_{k} - \alpha_k A \bm{p}_k$
+    \State $\beta_k \gets \frac{|\bm{r}_{k+1}|^2}{|\bm{r}_{k}|^2}$
+    \State $\bm{p}_{k+1}\gets \bm{r}_{k+1} + \beta_k \bm{p}_k$. 
+    \State $k \gets k+1$
+\EndWhile
+\end{algorithmic}
+\end{algorithm}
+\subsection{Boundary conditions}
+We apply no-sip boundary conditions for the $x$ and $y$ boundaries, and periodic boundary conditions for the $z$-direction. 
+\subsubsection{Ghost nodes}
+To do this, we make use of ghost nodes. The scalar fields, in this case pressure, will have ghost nodes at $-0.5 \Delta x$ and $L + 0.5 \Delta x$ for all directions. The velocity components need to be treated differently along their flow direction. For instance, we define the ghost nodes for the $u$ velocity to be at $x = -\Delta x$ and $x = L$. Note that $x = L$ is still a physical position inside the fluid. We can still define this node as a ghost node, because the fluid velocity at this node should always be equal to the fluid velocity at $x = 0$. For periodic boundaries, this is trivial. For no-slip boundary conditions, the velocity is zero at both $x = 0$ and $x = L$. 
+\subsubsection{Periodic boundaries}
+Because we chose $x = L$ to be a ghost node for $u$, we have the same amount of physical nodes $N$ for both pressure and the velocity components. This means that we can apply the same communication logic to initialize the ghost nodes. 
+\subsubsection{No-slip boundaries}
+When we impose no-slip on a boundary perpendicular to the flow direction, for instance at $x = 0$, we can simply impose $u(0, y, z) = u_\text{wall}$ at these nodes. When we impose no-slip on a boundary along the flow direction, for instance at $y = 0$, we do the following,
+\begin{equation}
+    u\left(x, -\frac12 \Delta x, z\right) = -u\left(x, \frac12 \Delta x, z\right) + 2 u_\text{wall}.
+\end{equation}
+Finally, we choose $\frac{d p}{d n} = 0$ at no-slip boundaries. We can impose this as follows,
+\begin{equation}
+    p\left(x, -\frac12 \Delta x, z\right) = p\left(x, \frac12 \Delta x, z\right).
+\end{equation}
+Note that we need to compute the Laplacian of the field $\bm{p}_k$ in the Conjugate Gradient algorithm~\ref{alg:cgm}. Note that we indicated the pressure as $\bm{x}$, and $\bm{p}$ in this case is a correction field. To know what boundary conditions apply to this correction field, we look at the following part of the algorithm,
+\begin{equation}
+    \bm{x}_{k+1} \gets \bm{x}_k + \alpha \bm{p}_k. 
+\end{equation}
+From this, we get the following,
+\begin{equation}
+    \frac{\partial}{\partial n}\bm{x}_{k+1} \gets \frac{\partial}{\partial n}\bm{x}_k + \alpha \frac{\partial}{\partial n}\bm{p}_k. 
+\end{equation}
+So if both the normal gradient of the initial pressure $\bm{x}_k$ and next pressure $\bm{x}_{k+1}$ are zero, then the gradient of $\bm{p}$ must also be zero. This means that we can use the same boundary condition for both the pressure field and the correction field used in the Conjugate Gradient Method when we apply no-slip boundaries. 
+\subsection{Implementation}
+A 3D, MPI-parallelized implementation of the algorithm I described can be found on GitHub~\cite{code}.
+\clearpage
+\section{Results}
+
+\clearpage % Restrict floats (images)
+\printbibliography{}
+
+\end{document}
