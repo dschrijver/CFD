@@ -46,6 +46,8 @@ y = np.arange(0.5, NY, 1) * dx
 velocity = np.sqrt(u_center*u_center + v_center*v_center)
 im = plt.imshow(velocity.T, origin="lower", cmap="jet", extent=[0, NX*dx, 0, NY*dx], vmin=0, vmax=1)
 plt.streamplot(x, y, u_center.T, v_center.T, color="white", density=1.5, linewidth=1)
+plt.xlim(0, NX*dx)
+plt.ylim(0, NY*dx)
 plt.colorbar(im, label="velocity")
 plt.xlabel("$x$")
 plt.ylabel("$y$")

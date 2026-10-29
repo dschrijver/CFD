@@ -103,6 +103,9 @@ void poisson_solve(double *scalar, double *rhs, double *residual, int *iters, Po
 
         if (*residual < epsilon)
             break;
+            
+        if (rr / rr_initial < epsilon)
+            break;
 
         const double beta = rr / rr_previous;
 

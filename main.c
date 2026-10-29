@@ -40,13 +40,6 @@ int main(int argc, char **argv)
     double *divergence;
     allocate(&divergence, params);
 
-    // Used for Poisson solver
-    double *r_poisson, *s_poisson, *p_poisson, *q_poisson;
-    allocate(&r_poisson, params);
-    allocate(&s_poisson, params);
-    allocate(&p_poisson, params);
-    allocate(&q_poisson, params);
-
     // Communication buffers
     BufferBag *buffers = (BufferBag *)malloc(sizeof(BufferBag));
     allocate_buffers(buffers, params);
