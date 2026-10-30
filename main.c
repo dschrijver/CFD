@@ -155,11 +155,6 @@ int main(int argc, char **argv)
         }
     }
 
-    output(u, "u", params);
-    output(v, "v", params);
-    output(w, "w", params);
-    output(pressure, "pressure", params);
-
     free_poisson(poisson);
 
     free_buffers(buffers);

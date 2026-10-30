@@ -5,21 +5,21 @@
 
 static inline void set_params(ParamBag *params)
 {
-    params->NX = 64;
+    params->NX = 1;
     params->NY = 64;
     params->NZ = 1;
 
     double Lx = 1.0;
-    params->dx = Lx / (double)params->NX;
+    params->dx = Lx / (double)params->NY;
 
-    params->t_final = 50.0;
-    params->dt = 0.005;
+    params->t_final = 100.0;
+    params->dt = 0.0001;
 
-    params->dt_output = 0.5;
-    params->dt_log = 0.05;
+    params->dt_output = 1.0;
+    params->dt_log = 0.1;
 
     params->Re = 100.0;
-    params->Fx = 0.0;
+    params->Fx = 1.0;
     params->Fy = 0.0;
     params->Fz = 0.0;
 

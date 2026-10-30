@@ -18,7 +18,7 @@ with h5py.File(data_files[-1], "r") as data_file:
     NX, NY, NZ = data_file["data"].shape
     data = data_file["data"][0,:,0]
 
-dx = 0.01
+dx = 1.0/NY
 Re = 100
 dpdx = -1
 

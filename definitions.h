@@ -4,18 +4,18 @@
 // ---------------------------
 //     Boundary conditions        
 // ---------------------------
-// #define XPERIODIC
+#define XPERIODIC
 // #define YPERIODIC
 #define ZPERIODIC
 
-#define LEFT_NOSLIP
-#define RIGHT_NOSLIP
+// #define LEFT_NOSLIP
+// #define RIGHT_NOSLIP
 #define BOTTOM_NOSLIP
 #define TOP_NOSLIP
 // #define BACK_NOSLIP
 // #define FRONT_NOSLIP
 
-#define TOP_U 1.0
+// #define TOP_U 1.0
 // #define BOTTOM_U 1.0
 
 #define INI_STATIONARY

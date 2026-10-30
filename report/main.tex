@@ -97,7 +97,7 @@ Finally, the divergence will be computed as follows,
     \partial_z w &= \frac{w_{i, j, k+1} - w_{i, j, k}}{\Delta x}+ \mathcal{O}\left(\Delta x^2\right).
 \end{split}
 \end{equation}
-\subsection{Poisson solver}
+\subsection{Poisson solver}\label{subsec:Poisson solver}
 We will use the Conjugate Gradient Method to solve Eq.~(\ref{eq:poisson}). This is an iterative method that solves the following Matrix equation,
 \begin{equation}
     A \bm{x} = \bm{b}. 
@@ -147,6 +147,55 @@ So if both the normal gradient of the initial pressure $\bm{x}_k$ and next press
 A 3D, MPI-parallelized implementation of the algorithm I described can be found on GitHub~\cite{code}.
 \clearpage
 \section{Results}
+\subsection{Testing Poisson solver}
+I will test the Poisson solver with periodic boundary conditions by setting the right hand side, indicated by $b(x, y, z)$, of the Poisson equation equal to the following,
+\begin{equation}
+\begin{split}
+    b(x, y, z) &= \sin\left(\frac{2 \pi x}{L_x}\right) \sin\left(\frac{2 \pi y}{L_y}\right) \sin\left(\frac{2 \pi z}{L_z}\right) + \frac12 \sin\left(\frac{20 \pi x}{L_x}\right) \sin\left(\frac{20 \pi y}{L_y}\right) \sin\left(\frac{20 \pi z}{L_z}\right)\\
+    &\quad + \frac{1}{10} \sin\left(\frac{40 \pi x}{L_x}\right) \sin\left(\frac{40 \pi y}{L_y}\right) \sin\left(\frac{40 \pi z}{L_z}\right).
+\end{split}
+\end{equation}
+To test the no-slip boundary conditions we have the following,
+\begin{equation}
+\begin{split}
+    b(x, y, z) &= \cos\left(\frac{\pi x}{L_x}\right) \cos\left(\frac{\pi y}{L_y}\right) \cos\left(\frac{\pi z}{L_z}\right) + \frac12 \cos\left(\frac{19 \pi x}{L_x}\right) \cos\left(\frac{19 \pi y}{L_y}\right) \cos\left(\frac{19 \pi z}{L_z}\right)\\
+    &\quad + \frac{1}{10} \cos\left(\frac{39 \pi x}{L_x}\right) \cos\left(\frac{39 \pi y}{L_y}\right) \cos\left(\frac{39 \pi z}{L_z}\right).
+\end{split}
+\end{equation}
+Note that higher frequencies are added to be more challenging to the Poisson solver. If we only included the largest wavelengths, the solver would converge in 1 step. It now takes about 3 steps when we use $\Delta t = 1$ in our stopping criterion described in Sec.~(\ref{subsec:Poisson solver}). The results can be found in Fig.~\ref{fig:Poisson tests}. 
+\begin{figure}[htp]
+\centering
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/validation_periodic.pdf}
+    \caption{Periodic}\label{fig:validation_periodic}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/validation_noslip.pdf}
+    \caption{No-slip}\label{fig:validation_noslip}
+\end{subfigure}
+\caption{Numerical (blue) versus analytical (orange) solutions to Poisson equation along line in 3D domain. }\label{fig:Poisson tests}
+\end{figure}
+
+We can stress-test the solver, forcing it to take more iterations to converge, by setting $b$ equal to random values in the range $[-0.5, 0.5]$. This is shown in Fig.~(\ref{fig:Poisson stress test}). This takes 461 steps to converge to our strict convergence criterion. 
+\begin{figure}[htp]
+\centering
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/noise_solution.pdf}
+    \caption{Pressure solution}\label{fig:noise_solution}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/rhs.pdf}
+    \caption{Right-hand side}\label{fig:rhs}
+\end{subfigure}
+\caption{The solution for pressure (left) and the right hand side of the Poisson equation (right).}\label{fig:Poisson stress test}
+\end{figure}
+
+\subsection{Poiseuille flow}
+A simple test case, before we move on to the lid-driven cavity flow, can be the Poiseuille flow. We have periodic boundary conditions in the z-direction, with a length of 1. We have periodic boundary conditions in the x-direction, also with a length of 1. We have no-slip boundary conditions in the y-direction, with a height of 64. When introducing a constant force in the x-direction, we obtain a parabolic flow. 
 
 \clearpage % Restrict floats (images)
 \printbibliography{}
