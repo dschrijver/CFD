@@ -7,7 +7,7 @@ import numpy as np
 def analytical(x, freq):
     return (np.sin(freq*2*np.pi*x/LX) * np.sin(freq*2*np.pi*y/LY) * np.sin(freq*2*np.pi*z/LZ)) / ((freq*2*np.pi/LX)**2 + (freq*2*np.pi/LY)**2 + (freq*2*np.pi/LZ)**2)
 
-data_directory = __file__.rsplit("/", 2)[0] + "/"
+data_directory = __file__.rsplit("/", 2)[0] + "/test_poisson/"
 
 data_path = Path(data_directory)
 data_files = data_path.glob("pressure_*.h5")

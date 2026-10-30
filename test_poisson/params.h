@@ -10,11 +10,11 @@ static inline void set_params(ParamBag *params)
     params->NZ = 100;
 
     double Lx = 1.0;
-    params->dx = Lx / params->NX;
+    params->dx = Lx / (double)params->NX;
 
     params->dt = 1.0;
 
-    params->poisson_epsilon = 1e-8;
+    params->poisson_epsilon = 1e-6;
 }
 
 #endif

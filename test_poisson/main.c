@@ -78,7 +78,16 @@ int main(int argc, char **argv)
     }
 #endif
 
+    params->n_output = 0;
+    params->time = 0.0;
+
     output(rhs, "rhs", params);
+
+    // Initial guess
+    FOR_DOMAIN
+    {
+        pressure[IDX(i, j, k)] = 0.0;
+    }
 
     communicate(pressure, buffers, params);
     pressure_bc(pressure, params);

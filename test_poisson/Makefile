@@ -17,6 +17,13 @@ HEAD = $(wildcard ../include/*.h)
 OBJ = $(patsubst ../src/%.c,obj/%.o,$(SRC))
 HDF5_TAR = $(wildcard archives/hdf5*.tar.gz)
 
+all: ../definitions.h params.h
+	mv ../definitions.h ../definitions_old.h
+	cp definitions.h ..
+	make clean
+	make poisson
+	mv ../definitions_old.h ../definitions.h
+
 poisson: $(OBJ) obj/main.o
 	@printf '\033[1;32mCCLD %s\033[0m\n' "$^"
 	@$(CC) $^ -o $@  $(CFLAGS)

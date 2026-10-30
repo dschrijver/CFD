@@ -10,7 +10,7 @@ static inline void set_params(ParamBag *params)
     params->NZ = 1;
 
     double Lx = 1.0;
-    params->dx = Lx / params->NX;
+    params->dx = Lx / (double)params->NX;
 
     params->t_final = 50.0;
     params->dt = 0.005;

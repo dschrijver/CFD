@@ -3,7 +3,7 @@ from pathlib import Path
 from natsort import natsorted
 import matplotlib.pyplot as plt
 
-data_directory = __file__.rsplit("/", 2)[0] + "/"
+data_directory = __file__.rsplit("/", 2)[0] + "/test_poisson/"
 
 data_path = Path(data_directory)
 data_files = data_path.glob("pressure_*.h5")

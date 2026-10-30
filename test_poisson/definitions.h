@@ -15,8 +15,8 @@
 // #define BACK_NOSLIP
 // #define FRONT_NOSLIP
 
-#define INI_RHS_SINE // Standard option, to test periodic boundaries
+// #define INI_RHS_SINE // Standard option, to test periodic boundaries
 // #define INI_RHS_COSINE // To test no-slip boundaries
-// #define INI_RHS_NOISE // To test solver robustness
+#define INI_RHS_NOISE // To test solver robustness
 
 #endif
