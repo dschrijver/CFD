@@ -144,7 +144,11 @@ From this, we get the following,
 \end{equation}
 So if both the normal gradient of the initial pressure $\bm{x}_k$ and next pressure $\bm{x}_{k+1}$ are zero, then the gradient of $\bm{p}$ must also be zero. This means that we can use the same boundary condition for both the pressure field and the correction field used in the Conjugate Gradient Method when we apply no-slip boundaries. 
 \subsection{Implementation}
-A 3D, MPI-parallelized implementation of the algorithm I described can be found on GitHub~\cite{code}.
+A 3D, MPI-parallelized implementation of the algorithm I described can be found on GitHub~\cite{code}. For guidance during parameter selection, we can define a CFL number,
+\begin{equation}
+    \text{CFL} = \frac{\Delta t}{\Delta x}\max \Bigl(u + v + w\Bigr).
+\end{equation}
+Generally, the CFL number is kept below 0.5. 
 \clearpage
 \section{Results}
 \subsection{Testing Poisson solver}
@@ -195,7 +199,93 @@ We can stress-test the solver, forcing it to take more iterations to converge, b
 \end{figure}
 
 \subsection{Poiseuille flow}
-A simple test case, before we move on to the lid-driven cavity flow, can be the Poiseuille flow. We have periodic boundary conditions in the z-direction, with a length of 1. We have periodic boundary conditions in the x-direction, also with a length of 1. We have no-slip boundary conditions in the y-direction, with a height of 64. When introducing a constant force in the x-direction, we obtain a parabolic flow. 
+A simple test case, before we move on to the lid-driven cavity flow, can be the Poiseuille flow. We have periodic boundary conditions in the z-direction, with a length of 1. We have periodic boundary conditions in the x-direction, also with a length of 1. We have no-slip boundary conditions in the y-direction, with a height of 64. When introducing a constant force of 1 in the x-direction, we obtain a parabolic flow. The results can be shown in Fig.~(\ref{fig:Poiseuille})
+
+\begin{figure}[htp]
+\centering
+\begin{subfigure}{.60\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/poiseuille.pdf}
+\end{subfigure}
+\caption{The numerical flow profile (blue) and the analytical profile (orange)}\label{fig:Poiseuille}
+\end{figure}
+
+\subsection{Lid-driven Cavity Flow}
+For the lid-driven cavity flow, we have periodic boundary conditions in the z-direction, and no-slip boundary conditions in the x and y directions. The flow is driven by moving the top wall with a horizontal velocity of 1. We can run simulations on a 64 by 64 grid for $\textit{Re} = 1, 10, 100$ and $1000$. We show the velocity profiles with correspoding streamlines for these Reynolds numbers in Fig.~(\ref{fig:Velocity plots cavity}). The timesteps $\Delta t$ are chosen to be as large as they could without introducing instability. The final times $t_\text{final}$ are chosen at the point where the simulation reaches equilibrium. To keep the CFL number below 0.5, we don't increase $\Delta t$ further than $5\cdot 10^{-3}$ to prevent CFL numbers higher than 0.5. 
+\begin{figure}[htp]
+\centering
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/Re=1.pdf}
+    \caption{$\textit{Re} = 1$, $\Delta t = 5\cdot 10^{-5}$, $t_\text{final} = 1$}\label{fig:Re=1}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/Re=10.pdf}
+    \caption{$\textit{Re} = 10$, $\Delta t = 5\cdot 10^{-4}$, $t_\text{final} = 10$}\label{fig:Re=10}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/Re=100.pdf}
+    \caption{$\textit{Re} = 100$, $\Delta t = 5\cdot 10^{-3}$, $t_\text{final} = 100$}\label{fig:Re=100}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/Re=1000.pdf}
+    \caption{$\textit{Re} = 1000$, $\Delta t = 5\cdot 10^{-3}$, $t_\text{final} = 1000$}\label{fig:Re=1000}
+\end{subfigure}
+\caption{Velocity plots with streamlines given for different Reynolds numbers. }\label{fig:Velocity plots cavity}
+\end{figure}
+
+We can plot the $u$ velocity at $x = \frac12 L$ and $v$ at $y = \frac12 L$. The results are shown in Figures~\ref{fig:u velocity} and~\ref{fig:v velocity}. We have comparison data from previous research that shows good agreement for our numerical solutions at $\textit{Re} = 100$ and $\textit{Re} = 1000$~\cite{ghia_high-re_1982}. 
+\begin{figure}[htp]
+\centering
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/cavity_compare_u_Re=1.pdf}
+    \caption{$\textit{Re} = 1$}\label{fig:cavity_compare_u_Re=1}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/cavity_compare_u_Re=10.pdf}
+    \caption{$\textit{Re} = 10$}\label{fig:cavity_compare_u_Re=10}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/cavity_compare_u_Re=100.pdf}
+    \caption{$\textit{Re} = 100$}\label{fig:cavity_compare_u_Re=100}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/cavity_compare_u_Re=1000.pdf}
+    \caption{$\textit{Re} = 1000$}\label{fig:cavity_compare_u_Re=1000}
+\end{subfigure}
+\caption{Line plots of $u$ velocity through vertical center of domain for different Reynolds numbers. }\label{fig:u velocity}
+\end{figure}
+\begin{figure}[htp]
+\centering
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/cavity_compare_v_Re=1.pdf}
+    \caption{$\textit{Re} = 1$}\label{fig:cavity_compare_v_Re=1}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/cavity_compare_v_Re=10.pdf}
+    \caption{$\textit{Re} = 10$}\label{fig:cavity_compare_v_Re=10}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/cavity_compare_v_Re=100.pdf}
+    \caption{$\textit{Re} = 100$}\label{fig:cavity_compare_v_Re=100}
+\end{subfigure}
+\begin{subfigure}{.49\textwidth}
+    \centering
+    \includegraphics[width=1\textwidth]{figures/cavity_compare_v_Re=1000.pdf}
+    \caption{$\textit{Re} = 1000$}\label{fig:cavity_compare_v_Re=1000}
+\end{subfigure}
+\caption{Line plots of $v$ velocity through horizontal center of domain for different Reynolds numbers. }\label{fig:v velocity}
+\end{figure}
 
 \clearpage % Restrict floats (images)
 \printbibliography{}
