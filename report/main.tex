@@ -24,11 +24,11 @@
 
 \section{Incompressible Navier-Stokes solver in 3D}
 We want to solve the following set of dimensionless equations,
-\begin{equation}\label{eq:continuity}
-    \bm{\nabla}\cdot \bm{u} = 0,
-\end{equation}\label{eq:momentum}
-\begin{equation}
-    \frac{\partial \bm{u}}{\partial t} + \bm{\nabla}\cdot\left(\bm{u} \bm{u}\right) = -\bm{\nabla}p + \frac{1}{\textit{Re}}\nabla^2 \bm{u} + \bm{f}_b,
+\begin{equation}\label{eq:momentum}
+\begin{split}
+    \bm{\nabla}\cdot \bm{u} &= 0,\\
+    \frac{\partial \bm{u}}{\partial t} + \bm{\nabla}\cdot\left(\bm{u} \bm{u}\right) &= -\bm{\nabla}p + \frac{1}{\textit{Re}}\nabla^2 \bm{u} + \bm{f}_b,
+\end{split}
 \end{equation}
 where $\bm{f}_b$ indicates additional body forces on the fluid. We will use the pressure-projection method to numerically solve these equations. We first discretize Eq.~(\ref{eq:momentum}) without the pressure gradient,
 \begin{equation}
@@ -199,7 +199,7 @@ We can stress-test the solver, forcing it to take more iterations to converge, b
 \end{figure}
 
 \subsection{Poiseuille flow}
-A simple test case, before we move on to the lid-driven cavity flow, can be the Poiseuille flow. We have periodic boundary conditions in the z-direction, with a length of 1. We have periodic boundary conditions in the x-direction, also with a length of 1. We have no-slip boundary conditions in the y-direction, with a height of 64. When introducing a constant force of 1 in the x-direction, we obtain a parabolic flow. The results can be shown in Fig.~(\ref{fig:Poiseuille})
+A simple test case, before we move on to the lid-driven cavity flow, can be the Poiseuille flow. We have periodic boundary conditions in the z-direction, with a length of 1. We have periodic boundary conditions in the x-direction, also with a length of 1. We have no-slip boundary conditions in the y-direction, with a height of 64. When introducing a constant force of 1 in the x-direction, we obtain a parabolic velocity profile. The results can be shown in Fig.~(\ref{fig:Poiseuille}).
 
 \begin{figure}[htp]
 \centering
@@ -237,7 +237,7 @@ For the lid-driven cavity flow, we have periodic boundary conditions in the z-di
 \caption{Velocity plots with streamlines given for different Reynolds numbers. }\label{fig:Velocity plots cavity}
 \end{figure}
 
-We can plot the $u$ velocity at $x = \frac12 L$ and $v$ at $y = \frac12 L$. The results are shown in Figures~\ref{fig:u velocity} and~\ref{fig:v velocity}. We have comparison data from previous research that shows good agreement for our numerical solutions at $\textit{Re} = 100$ and $\textit{Re} = 1000$~\cite{ghia_high-re_1982}. 
+We can plot the $u$ velocity at $x = \frac12 L$ and $v$ at $y = \frac12 L$. The results are shown in Figures~\ref{fig:u velocity} and~\ref{fig:v velocity}. We have comparison data from previous research that shows good agreement for our numerical solutions at $\textit{Re} = 100$ and $\textit{Re} = 1000$~\cite{ghia_high-re_1982}. From the plots for $\textit{Re} = 1$ and $\textit{Re} = 10$, we see that our solution converges quickly for finer grids. From our plots for $\textit{Re} = 100$ and $\textit{Re} = 1000$, we see that this convergence is toward the numerical solutions from literature. 
 \begin{figure}[htp]
 \centering
 \begin{subfigure}{.49\textwidth}

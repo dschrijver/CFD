@@ -131,7 +131,7 @@ void initialize_HDF5(ParamBag *params)
     params->filespace = H5Screate_simple(3, dims_file, NULL);
 
     // Space occupied in processor memory
-    hsize_t dims_proc[3] = {NX_proc + 4, NY_proc + 4, NZ_proc + 4};
+    hsize_t dims_proc[3] = {NX_proc + 2, NY_proc + 2, NZ_proc + 2};
     params->memspace = H5Screate_simple(3, dims_proc, NULL);
 
     params->dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
